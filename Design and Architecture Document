@@ -1,0 +1,126 @@
+Design and Architecture:
+    The are two main modules that take care of the core functions; indexing and  querying.
+	 
+ 1) Indexing:
+    The data structure designed for this purpose is a nested dictionary. The nested dictionary consists of words as the keys, The values for each word  are another          dictionary which is a dictionary of document  ids and the positions list  containing the  positions of a given word in the  document. The positings list is designed     that the first entry of the postings list is always the length of the positing list corresponding to the number of times the word occurs in the given document. 
+	
+    Thus for each word the documents that the  has the word and the positions in which the word occurs ina given document is stored. This is useful in calculating our       term frequency and document frequency. 
+	
+	We also store a meta data dictionary that stores information about the  document such as document title, document id , author and bibliography. 
+	
+	The indexing process is divided into seven different parts
+ 
+    1.a) Retrieving List of All Corpus Files:
+	     
+		 The list of corpus files is retrieved from the given corpus path.  
+   	
+    1.b) Parsing the XML Style Document:
+	     
+		 For each document in the corpus which is of ,XML Style, with the  the appropriate tags such as <TEXT>,<AUTHOR>,<BIBLIO>,<TITLE> is parsed based on the XML tag 
+		 . The meta data information is stored in the meta data index.  Words that correspond to the <TEXT> tag of the document are the document contents. These words , 
+		 are those that will be stored in the main word index.
+   
+    1.c) Tokenization:
+	
+	     The text read from the <TEXT> tags of the  XML style document is  tokenized  such that all the  punctuations are removed, except words with - in between them            like "boundary-layer" , which retain the "-"  between the words. These are considered as single words
+		 
+    1.d) Stop words removal:		 		  
+	  
+	     Words like "the" , 'is' , 'of' ,'or' etc are considered as stop words and they are present in large numbers in almost every document. So instead of indexing 
+		 them removing stop words wil save index space. Also  not considering such words will help us in minimizing to some extent the number of documents to be 
+		 returned for a query  as searching for "the  world is flat" will return all documents containing the word 'the' which will be huge.  After tokenization the 
+		 words are  validated for stop words and further processing is done on a word only if it is not a stop word. 
+		 
+    1.e) Stemming:
+	     Stemming is the process of  removing the  inflected words or derived words into their root form .  This helps mapping all the derived words into a single    
+		 word thereby optimizing the index storage space. For example the words 'experimentally' and 'experimental' are stemmed and mapped on to a single word 
+		 "experiment" . The  stem of a word is the word itself when it cannot be stemmed. The words , thus after stemming are then stored into the index.
+		 
+    1.f) Indexing words:
+	
+	      The  words after being processed from stages 1.c to 1.e are stored into the index dictionary. For each word the document id and the list of positions in  doc            where the word occured is stored .
+		  
+    1.g) Storing the index onto the disk:	
+	      
+		  The index files (word and meta  data index files) are then stored on to the disk for later retrieval during query processing .i.e  the dictionary  is 
+		  serialized to the disk.
+		  
+  2) Querying:
+  
+     2.a) Loading the  index into memory:
+	      
+		  The index dictionaries  that were serialized to the disk are again reloaded into the memory. The querying is done using the index data loaded into the main 
+		  memory. As of now the entire  query index along with the positings list and the meta data list is stored in the main memory and no storage optimziations have 
+		  been done. Reading the index file in the  memory  increases the querying speed, but the downside of it is the whole index has to be loaded in to  the memory
+		  
+    2.b) Query Processing
+	
+	     There are three different types of queries , normal queries for words, not queries and phrasal queries. Phrasal queries can also be of not type.  Each query    
+		 type requires different type of processing and the in the end the final  result has to be a fuzzy or of all the results  of each query type.
+			    
+	 	 The following stages are present in query processing
+		 
+		 2.b.I) Tokenization of the input query
+		        
+				For a given input query the different types of queries(NOT NORMAL and PHRASE) are extracted  based on regular expressions.  There is a  dictionary ,                    one  for each type of the query(here we have three) where queries of the appropraite type are stored
+				
+		2.b.II) Stemming and stop word removal
+		
+		        Similar to the stemming and stop word removal done during indexing, the  query words are stemmed and stop words are	 removed from the input query
+				
+	    2.b.III) Normal Word Query Processing
+		        
+				For normal words  a lookup is done in the index hash and the the matching document containing the appropriate documents are retrieved
+				
+	    2.b.IV) Phrase Query Processing:
+		        Phrase queries are the queries that are  provided within quotes e.g. "hello how are you". This means that the document should contain the words given                   as a phrase in the sequential order.
+				Algorithm:
+				1)  Change the phrase into a phrase with reverse ordering of the words
+				2)  Process each phrase group
+				3)  Within a group  find all the documents that have  the two words  in a distance of 1. If there are no documents found then stop further processing
+				4)  If  matching documents are  found   store  the   document number along with the positions for that specific group number in a dictionary .
+				  
+				5)  Repeat the the entire process  for each group found
+				6)  Before each  group iteration intersect the current results with the results  got after processing the previous group
+				7)  If the result of intersection is null stop processing further groups and return null. Thus intersection is done after each group processing
+				8)  For the current group the  compare the results with the previous group and check if the distance between the positions in the  successive groups s 
+				    max 2
+				9)  At the end of  processing all the groups the final intersected set will be the matching documents for the entire phrase. return the set    
+		2.b.V) Not Queries
+		
+		        For not simple not queries  a lookup of the word is done in the dictionary to get a list of the words matching the query. The compliment of this list    
+				with respect to  all the list of  documents gives the result of the simple not query. The documents that  are returned  as   the result of not query                     are assigned a  weight of 1. 
+				
+				For complex phrase not queries the  list of documents matching  phrase  queries is found and the compliment of that set is returned	
+				
+	   2.b.VI  Merging Results:
+	   
+	             For each type of query identified from the query string , the results are computed for each of the  sub parts. The results are merged with the rank 
+				 calculated for all the documents present in the final result and dislayed  in the descending order of ranking
+				 
+	  
+	  Snippet Generation:
+	    
+	  For each query in the result the document is matched againt the query results and the  document contents(contents of the text tag) are displayed with the     
+	  matching words highlighted 
+	  
+	  
+	  Index Stats:
+	  Index File Size                                      :0.306147  MB
+	  Total words(includes repetitions)                    :221874
+	  Unique Indexed Words                                 :6261
+	  Total stop word occurences                           :93344
+	  Total stem words                                     :76303
+	  Total corpus files                                   :1400
+	  	    			 			
+				
+	   					  				
+				
+		        	   
+		  
+		  
+		  
+	    	   		  
+		 
+  		 		 
+	

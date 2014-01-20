@@ -1,0 +1,67 @@
+Enter your Search Query
+Press Ctrl+C or x to exit
+-h lists the help for this program
+_______
+set(['"laminar-flow surfaces at full-scale"'])
+set(['"laminar-flow surfaces at full-scale"'])
+set([])
+set([])
+OrderedDict([('PHRASE', set(['"laminar-flow surfaces at full-scale"'])), ('NOT', []), ('WORD', set([]))])
+current word
+laminar-flow
+current word
+surfac
+current word
+full-scal
+Result of phrase query
+phrase is:
+laminar-flow surfac full-scal
+groups are
+{'1': ['full-scal', 'surfac'], '2': ['laminar-flow']}
+group
+{'1': ['full-scal', 'surfac'], '2': ['laminar-flow']}
+group_keys
+['1', '2']
+******
+group is 1
+Current group is
+['full-scal', 'surfac']
+good group number is 1
+1
+[55]
+match count
+1
+[1, 55]
+relavant documents
+{'1': {'1324': [1, 55]}}
+relavant phraase documents
+{'1': {'1324': [1, 55]}}
+group is 2
+Current group is
+['laminar-flow']
+good group number is 2
+relavant phraase documents
+{'2': {'1323': [1, 4], '1324': [1, 53]}}
+lenght of phrase query
+3
+ppq result
+{'1324': [3, 53]}
+processing normal words
+Fnal Results
+OrderedDict([('NOT', OrderedDict()), ('WORD', OrderedDict()), ('PHRASE', OrderedDict([('"laminar-flow surfaces at full-scale"', {'1324': [3, 53]})]))])
+queries and results
+OrderedDict()
+queries and results
+OrderedDict()
+queries and results
+OrderedDict([('"laminar-flow surfaces at full-scale"', {'1324': [3, 53]})])
+result
+{'1324': [3, 53]}
+result doc
+[3, 53]
+1324:3
+.......ssible on [94mlaminar-flow surfaces at full-scale[0m flight reynolds numbers .  the estimates suggest
+that at an altitude of 30,000 ft the critical pimple height
+is 0.004 in. for a speed of 350 m.p.h., .......
+None
+None

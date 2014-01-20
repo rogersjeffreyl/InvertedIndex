@@ -1,0 +1,14 @@
+PACKAGES USED: 
+NLTK
+1.nltk.tokenize import RegexpTokenizer- Tokenizing the input and query strings and removing punctuations
+2.from nltk.metrics import distance  as distance - Calcluates the levenshtine edit distance between two words 
+3.from nltk.stem import PorterStemmer-Steming the corpus words and query words using porters stemming
+4.from nltk.corpus import stopwords  - used for removing stop words from the corpus and query
+
+PICKLE:
+
+1.import cPickle as pickle-serialize and deserialize the index hash
+
+PYTHON:
+
+1.from xml.dom import minidom-Parsing the xml corpus

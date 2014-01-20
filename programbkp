@@ -1,0 +1,171 @@
+ def process_phrase_in_query(self,phrase):
+        print "phrase is:"
+        print phrase
+        phrase_word_list=phrase.split()
+        processed_word_list=[]
+        if phrase_word_list[0]=="<grp>":
+           processed_word_list=phrase_word_list[1:]
+
+        else:
+           processed_word_list=phrase_word_list
+        print processed_word_list
+        print "phrase index instance"
+        print self.phrase_index_instance
+        if len(processed_word_list)==1:
+            if self.phrase_index_instance:
+               print "hello index"
+               print self.phrase_index_instance["1"]
+               return self.phrase_index_instance["1"]
+            else:
+               return self.return_query_results(phrase_word_list[0])
+        phrase_group=self.construct_phrase_groups(phrase_word_list)
+        print "group"
+        print phrase_group
+        group_counter=0
+
+        prev_phrase_group_document_list={}
+        # setting it to null because this has to contain entries for only the new groupings formed
+        print "group_keys"
+        print  phrase_group.keys()
+        print "******"
+        for group in sorted(phrase_group.keys()):
+            relevant_doc_for_phrase={}
+            group_counter=group_counter+1
+            current_group=phrase_group[group]
+            print "group is %s" %group
+            if group_counter!=1:
+               print "Current group is"
+               print current_group
+               if prev_phrase_group_document_list:
+                  print "processing group..."
+                  relevant_doc_for_phrase=self.process_phrase_group(group,current_group,1)
+                  prev_phrase_group_document_list=relevant_doc_for_phrase
+                  self.phrase_index_instance.update(relevant_doc_for_phrase)
+
+               else:
+                  self.phrase_index_instance={}
+                  return self.phrase_index_instance
+            else:
+               print "Current group is"
+               print current_group
+               relevant_doc_for_phrase=self.process_phrase_group(group,current_group,1)
+               prev_phrase_group_document_list=relevant_doc_for_phrase
+               print "relavant phraase documents"
+               print relevant_doc_for_phrase
+               if relevant_doc_for_phrase == None:
+                  return None
+               else:
+                 self.phrase_index_instance.update(relevant_doc_for_phrase)
+        for key in  sorted(self.phrase_index_instance.keys()):
+            if group_counter>=1:
+               if int(key) >group_counter:
+                  del self.phrase_index_instance[key]
+        print "After invalidating the enteries"
+        print group_counter
+        print self.phrase_index_instance
+        group_counter=0
+        prev_grp_num=""
+        new_word="<grp> "
+        print "Grouping"
+        for group in sorted(self.phrase_index_instance.keys()):
+            print "group:%s" %group
+            print "^^^^^^^^^^^^^^^^"
+            hash1=self.phrase_index_instance[group]
+            for key in sorted(hash1.keys()):
+                print  key
+                print hash1[key]
+
+
+        for group in sorted(self.phrase_index_instance.keys()):
+            new_word=new_word+" "+str(group)
+        print "new words"
+        print new_word
+        self.process_phrase_in_query(new_word)
+        print "returning  from the method"
+        print self.phrase_index_instance
+        return self.phrase_index_instance["1"]
+
+    def process_phrase_group(self,group_number,phrase_group,distance,):
+
+        print "good group number is %s" %group_number
+        relevant_documents={}
+        match_count=0
+        word_1_hash={}
+        word_2_hash={}
+        is_word_1_grp=0
+        is_word_2_grp=0
+        if  phrase_group:
+
+
+                if self.phrase_index_instance.has_key(phrase_group[0]):
+
+                   is_word_1_grp=1
+                   word_1_hash=self.phrase_index_instance[phrase_group[0] ]
+
+                else:
+
+                   word_1_hash=self.return_query_results(phrase_group[0])
+
+                if len(phrase_group)==1:
+                   relevant_documents.update({group_number:word_1_hash})
+                   return relevant_documents
+
+                if self.phrase_index_instance.has_key(phrase_group[1]):
+                   is_word_2_grp=1
+                   word_2_hash=self.phrase_index_instance[phrase_group[1] ]
+                else:
+                   word_2_hash=self.return_query_results(phrase_group[1])
+
+                print "words are:"
+                print phrase_group[0]
+                print phrase_group[1]
+                print "word1hash"
+                print word_1_hash
+                print "word2 hash"
+                print word_2_hash
+
+                common_documents_list=(set(word_1_hash)).intersection(set(word_2_hash))
+                print "common documents are "
+                print common_documents_list
+                if common_documents_list:
+                   for document in common_documents_list:
+                       match_count=0
+                       match_positions=[]
+
+                       for position1 in word_1_hash[document][1:] :
+                           for position2 in word_2_hash[document][1:] :
+                                 check_distance=0
+                                 if is_word_1_grp==0 or is_word_2_grp==0:
+                                    print "setting check distance %d" %distance
+                                    check_distance=distance
+                                 else:
+                                     check_distance=2
+
+                                 if position1-position2==check_distance:
+
+                                     match_count=match_count+1
+                                     print match_count
+                                     if self.grouping_iteration>1 && 
+                                     match_positions.append(position2)
+                                     print match_positions
+
+
+                       if match_count>=1:
+                            print "match count"
+                            print match_count
+                            position_array=[match_count]
+                            position_array.extend(match_positions)
+                            print position_array
+                            new_position={document:position_array}
+                            if relevant_documents.has_key(group_number):
+                               relevant_documents[group_number].update(new_position)
+                            else:
+                                relevant_documents.update({group_number:new_position})
+
+                else:
+                   print group_number
+                   print relevant_documents
+                   return  None
+        print "relavant documents"
+        print relevant_documents
+        return relevant_documents
